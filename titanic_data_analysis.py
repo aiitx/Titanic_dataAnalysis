@@ -11,6 +11,8 @@ from pandas import Series, DataFrame
 
 import matplotlib.pyplot as plt
 
+from sklearn.ensemble import RandomForestRegressor
+
 data_train = pd.read_csv("D:/pycharmpro_20192/python_project/titanic_20200806/titanic/train.csv")
 
 
@@ -94,9 +96,50 @@ data_train.Survived[data_train.Sex == 'male'][data_train.Pclass != 3].value_coun
 ax3.set_xticklabels([u"rescued", u"not rescued"], rotation=0)
 plt.legend([u"male/highClass"], loc='best')
 
-ax4=fig.add_subplot(144, sharey=ax1)
+ax4 = fig.add_subplot(144, sharey=ax1)
 data_train.Survived[data_train.Sex == 'male'][data_train.Pclass == 3].value_counts().plot(kind='bar', label='male low class', color='steelblue')
 ax4.set_xticklabels([u"rescued", u"not rescued"], rotation=0)
 plt.legend([u"male/lowClass"], loc='best')
 
 plt.show()
+
+
+# 查看各登船港口的获救情况
+fig = plt.figure()
+fig.set(alpha=0.2)  # 设定图表颜色alpha参数
+
+Survived_0 = data_train.Embarked[data_train.Survived == 0].value_counts()
+Survived_1 = data_train.Embarked[data_train.Survived == 1].value_counts()
+df=pd.DataFrame({u'rescued': Survived_1, u'not rescued': Survived_0})
+df.plot(kind='bar', stacked=True)
+plt.title(u"According to the port of embarkation")
+plt.xlabel(u"port")
+plt.ylabel(u"num of people")
+
+plt.show()
+
+# 堂兄弟/妹，孩子/父母有几人，对是否获救的影响
+g = data_train.groupby(['SibSp', 'Survived'])
+df = pd.DataFrame(g.count()['PassengerId'])
+print(df)
+# 无特别的规律
+
+# ticket是船票编号，应该是unique的，和最后的结果没有太大的关系，先不纳入考虑的特征范畴把
+# cabin只有204个乘客有值，我们先看看它的一个分布
+df = data_train.Cabin.value_counts()
+print(df)
+
+# 有无cabin的获救情况
+fig = plt.figure()
+fig.set(alpha=0.2)  # 设定图表颜色alpha参数
+
+Survived_cabin = data_train.Survived[pd.notnull(data_train.Cabin)].value_counts()
+Survived_nocabin = data_train.Survived[pd.isnull(data_train.Cabin)].value_counts()
+df = pd.DataFrame({u'yes': Survived_cabin, u'no': Survived_nocabin}).transpose()
+df.plot(kind='bar', stacked=True)
+plt.title(u"According to yes/no a cabin")
+plt.xlabel(u"Cabin")
+plt.ylabel(u"num of people")
+plt.show()
+
+
